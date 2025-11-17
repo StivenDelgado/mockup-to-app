@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, Phone, Navigation, Heart, MapIcon, List, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,17 @@ const Home = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("Relevancia");
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem("favorites");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [view, setView] = useState<"list" | "map">("list");
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+  }, [favorites]);
 
   const toggleFavorite = (placeId: string) => {
     setFavorites(prev => 
@@ -29,6 +36,19 @@ const Home = () => {
     setSelectedPlace(place);
     setModalOpen(true);
   };
+
+  const filteredPlaces = mockPlaces.filter(place => {
+    const matchesSearch = place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         place.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         place.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
+  const sortedPlaces = [...filteredPlaces].sort((a, b) => {
+    if (sortBy === "Rating") return b.rating - a.rating;
+    if (sortBy === "Distancia") return a.distance - b.distance;
+    return 0;
+  });
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -100,7 +120,12 @@ const Home = () => {
       {view === "list" ? (
         /* Places List */
         <div className="max-w-2xl mx-auto p-4 space-y-4">
-          {mockPlaces.map((place) => (
+          {sortedPlaces.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No se encontraron lugares</p>
+            </div>
+          ) : (
+            sortedPlaces.map((place) => (
             <div
               key={place.id}
               className="bg-card rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
@@ -168,13 +193,14 @@ const Home = () => {
                 </button>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       ) : (
         /* Map View */
         <div className="h-[calc(100vh-240px)]">
           <InteractiveMap 
-            places={mockPlaces} 
+            places={sortedPlaces} 
             onPlaceClick={handlePlaceClick}
           />
         </div>
