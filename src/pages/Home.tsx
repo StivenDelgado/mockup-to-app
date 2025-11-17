@@ -3,14 +3,19 @@ import { Search, SlidersHorizontal, Phone, Navigation, Heart, MapIcon, List, Use
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { mockPlaces } from "@/lib/mockData";
+import { mockPlaces, Place } from "@/lib/mockData";
 import { useNavigate } from "react-router-dom";
+import InteractiveMap from "@/components/InteractiveMap";
+import PlaceModal from "@/components/PlaceModal";
 
 const Home = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("Relevancia");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [view, setView] = useState<"list" | "map">("list");
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const toggleFavorite = (placeId: string) => {
     setFavorites(prev => 
@@ -18,6 +23,11 @@ const Home = () => {
         ? prev.filter(id => id !== placeId)
         : [...prev, placeId]
     );
+  };
+
+  const handlePlaceClick = (place: Place) => {
+    setSelectedPlace(place);
+    setModalOpen(true);
   };
 
   return (
@@ -86,89 +96,117 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Places List */}
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        {mockPlaces.map((place) => (
-          <div
-            key={place.id}
-            className="bg-card rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => navigate(`/place/${place.id}`)}
-          >
-            <div className="flex gap-4 p-4">
-              <img
-                src={place.image}
-                alt={place.name}
-                className="w-24 h-24 object-cover rounded-xl shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-semibold text-lg truncate">{place.name}</h3>
-                  <Badge variant={place.isOpen ? "default" : "destructive"} className="shrink-0">
-                    {place.isOpen ? "Abierto" : "Cerrado"}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {place.category} • ⭐ {place.rating} ({place.reviewCount.toLocaleString()}) • {place.distance} km
-                </p>
-                <p className="text-sm text-foreground line-clamp-2 mb-3">
-                  {place.description}
-                </p>
-                <div className="flex items-center gap-2">
-                  {place.priceLevel && (
-                    <Badge variant="outline">{place.priceLevel}</Badge>
-                  )}
-                  {place.hasWifi && (
-                    <Badge variant="outline">WiFi</Badge>
-                  )}
-                  {place.hasDelivery && (
-                    <Badge variant="outline">Entrega</Badge>
-                  )}
+      {/* Content Area */}
+      {view === "list" ? (
+        /* Places List */
+        <div className="max-w-2xl mx-auto p-4 space-y-4">
+          {mockPlaces.map((place) => (
+            <div
+              key={place.id}
+              className="bg-card rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate(`/place/${place.id}`)}
+            >
+              <div className="flex gap-4 p-4">
+                <img
+                  src={place.image}
+                  alt={place.name}
+                  className="w-24 h-24 object-cover rounded-xl shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-semibold text-lg truncate">{place.name}</h3>
+                    <Badge variant={place.isOpen ? "default" : "destructive"} className="shrink-0">
+                      {place.isOpen ? "Abierto" : "Cerrado"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {place.category} • ⭐ {place.rating} ({place.reviewCount.toLocaleString()}) • {place.distance} km
+                  </p>
+                  <p className="text-sm text-foreground line-clamp-2 mb-3">
+                    {place.description}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {place.priceLevel && (
+                      <Badge variant="outline">{place.priceLevel}</Badge>
+                    )}
+                    {place.hasWifi && (
+                      <Badge variant="outline">WiFi</Badge>
+                    )}
+                    {place.hasDelivery && (
+                      <Badge variant="outline">Entrega</Badge>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="flex border-t">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(place.id);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 hover:bg-muted/50 transition-colors"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${
+                      favorites.includes(place.id) ? "fill-primary text-primary" : ""
+                    }`}
+                  />
+                </button>
+                <div className="w-px bg-border" />
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 hover:bg-muted/50 transition-colors"
+                >
+                  <Phone className="h-5 w-5" />
+                </button>
+                <div className="w-px bg-border" />
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 hover:bg-muted/50 transition-colors"
+                >
+                  <Navigation className="h-5 w-5" />
+                </button>
+              </div>
             </div>
-            <div className="flex border-t">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(place.id);
-                }}
-                className="flex-1 flex items-center justify-center gap-2 py-3 hover:bg-muted/50 transition-colors"
-              >
-                <Heart
-                  className={`h-5 w-5 ${
-                    favorites.includes(place.id) ? "fill-primary text-primary" : ""
-                  }`}
-                />
-              </button>
-              <div className="w-px bg-border" />
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-2 py-3 hover:bg-muted/50 transition-colors"
-              >
-                <Phone className="h-5 w-5" />
-              </button>
-              <div className="w-px bg-border" />
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-2 py-3 hover:bg-muted/50 transition-colors"
-              >
-                <Navigation className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        /* Map View */
+        <div className="h-[calc(100vh-240px)]">
+          <InteractiveMap 
+            places={mockPlaces} 
+            onPlaceClick={handlePlaceClick}
+          />
+        </div>
+      )}
+
+      {/* Place Modal */}
+      <PlaceModal
+        place={selectedPlace}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onToggleFavorite={toggleFavorite}
+        isFavorite={selectedPlace ? favorites.includes(selectedPlace.id) : false}
+      />
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
         <div className="max-w-2xl mx-auto flex items-center justify-around h-16">
-          <Button variant="ghost" className="flex flex-col items-center gap-1 h-auto py-2">
+          <Button 
+            variant="ghost" 
+            className={`flex flex-col items-center gap-1 h-auto py-2 ${view === "map" ? "text-primary" : ""}`}
+            onClick={() => setView("map")}
+          >
             <MapIcon className="h-6 w-6" />
-            <span className="text-xs">Mapa</span>
+            <span className={`text-xs ${view === "map" ? "font-semibold" : ""}`}>Mapa</span>
           </Button>
-          <Button variant="ghost" className="flex flex-col items-center gap-1 h-auto py-2 text-primary">
+          <Button 
+            variant="ghost" 
+            className={`flex flex-col items-center gap-1 h-auto py-2 ${view === "list" ? "text-primary" : ""}`}
+            onClick={() => setView("list")}
+          >
             <List className="h-6 w-6" />
-            <span className="text-xs font-semibold">Lista</span>
+            <span className={`text-xs ${view === "list" ? "font-semibold" : ""}`}>Lista</span>
           </Button>
           <Button
             variant="ghost"
