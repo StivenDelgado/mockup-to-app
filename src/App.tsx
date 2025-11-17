@@ -11,6 +11,8 @@ import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import CreatePlace from "./pages/CreatePlace";
+import ModeratorProfile from "./pages/ModeratorProfile";
+import ModeratorHistory from "./pages/ModeratorHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/create-place" element={<CreatePlace />} />
+          <Route path="/moderator-profile" element={<ModeratorProfile />} />
+          <Route path="/moderator-history" element={<ModeratorHistory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
