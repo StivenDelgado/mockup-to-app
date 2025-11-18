@@ -3,12 +3,71 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Heart, Share2, Phone, Navigation, Star } from "lucide-react";
 import { mockPlaces, mockComments } from "@/lib/mockData";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import QuickReviewModal from "@/components/QuickReviewModal";
 
 const PlaceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const place = mockPlaces.find((p) => p.id === id);
-  const placeComments = mockComments.filter((c) => c.placeId === id);
+  
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [comments, setComments] = useState(mockComments);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  
+  const placeComments = comments.filter((c) => c.placeId === id);
+  const isFavorite = favorites.includes(id || "");
+
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem("favorites");
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+    
+    const savedComments = localStorage.getItem("comments");
+    if (savedComments) {
+      setComments(JSON.parse(savedComments));
+    }
+  }, []);
+
+  const toggleFavorite = () => {
+    const newFavorites = isFavorite
+      ? favorites.filter((f) => f !== id)
+      : [...favorites, id || ""];
+    
+    setFavorites(newFavorites);
+    localStorage.setItem("favorites", JSON.stringify(newFavorites));
+    toast.success(isFavorite ? "Eliminado de favoritos" : "Añadido a favoritos");
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: place?.name,
+          text: place?.description,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Enlace copiado al portapapeles");
+    }
+  };
+
+  const handleCall = () => {
+    window.location.href = `tel:+573001234567`;
+    toast.success("Abriendo marcador...");
+  };
+
+  const handleDirections = () => {
+    const { lat, lng } = place?.coordinates || { lat: 4.711, lng: -74.0721 };
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
+    toast.success("Abriendo Google Maps...");
+  };
 
   if (!place) {
     return <div>Lugar no encontrado</div>;
@@ -29,10 +88,20 @@ const PlaceDetail = () => {
           </Button>
           <h1 className="text-lg font-semibold">Detalle de lugar</h1>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Heart className="h-6 w-6" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full"
+              onClick={toggleFavorite}
+            >
+              <Heart className={`h-6 w-6 ${isFavorite ? "fill-primary text-primary" : ""}`} />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full"
+              onClick={handleShare}
+            >
               <Share2 className="h-6 w-6" />
             </Button>
           </div>
@@ -52,13 +121,15 @@ const PlaceDetail = () => {
               variant="secondary"
               size="icon"
               className="rounded-full bg-background/90 backdrop-blur-sm"
+              onClick={toggleFavorite}
             >
-              <Heart className="h-5 w-5" />
+              <Heart className={`h-5 w-5 ${isFavorite ? "fill-primary text-primary" : ""}`} />
             </Button>
             <Button
               variant="secondary"
               size="icon"
               className="rounded-full bg-background/90 backdrop-blur-sm"
+              onClick={handleShare}
             >
               <Share2 className="h-5 w-5" />
             </Button>
@@ -105,11 +176,21 @@ const PlaceDetail = () => {
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" size="lg" className="h-14">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="h-14"
+              onClick={handleCall}
+            >
               <Phone className="h-5 w-5 mr-2" />
               Llamar
             </Button>
-            <Button variant="outline" size="lg" className="h-14">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="h-14"
+              onClick={handleDirections}
+            >
               <Navigation className="h-5 w-5 mr-2" />
               Cómo llegar
             </Button>
@@ -133,7 +214,11 @@ const PlaceDetail = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold">Comentarios</h3>
-              <Button size="lg" className="rounded-full">
+              <Button 
+                size="lg" 
+                className="rounded-full"
+                onClick={() => setIsReviewModalOpen(true)}
+              >
                 Comentar/Calificar
               </Button>
             </div>
@@ -173,6 +258,13 @@ const PlaceDetail = () => {
           </div>
         </div>
       </div>
+
+      <QuickReviewModal
+        place={place}
+        open={isReviewModalOpen}
+        onOpenChange={setIsReviewModalOpen}
+        isLoggedIn={true}
+      />
     </div>
   );
 };
