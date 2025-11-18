@@ -12,6 +12,10 @@ export interface Place {
   hasWifi?: boolean;
   hasDelivery?: boolean;
   phone?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
   hours: {
     weekday: string;
     weekend: string;
@@ -43,6 +47,10 @@ export const mockPlaces: Place[] = [
     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop",
     priceLevel: "$$",
     phone: "+57 300 123 4567",
+    coordinates: {
+      lat: 4.7110,
+      lng: -74.0721
+    },
     hours: {
       weekday: "12:00-22:00",
       weekend: "12:00-23:30"
@@ -60,6 +68,10 @@ export const mockPlaces: Place[] = [
     image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&auto=format&fit=crop",
     hasWifi: true,
     phone: "+57 300 234 5678",
+    coordinates: {
+      lat: 4.7089,
+      lng: -74.0701
+    },
     hours: {
       weekday: "07:00-20:00",
       weekend: "08:00-21:00"
@@ -76,6 +88,10 @@ export const mockPlaces: Place[] = [
     isOpen: false,
     image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?w=800&auto=format&fit=crop",
     phone: "+57 300 345 6789",
+    coordinates: {
+      lat: 4.7150,
+      lng: -74.0680
+    },
     hours: {
       weekday: "09:00-17:00",
       weekend: "10:00-18:00"
@@ -94,6 +110,10 @@ export const mockPlaces: Place[] = [
     priceLevel: "$$$",
     hasDelivery: true,
     phone: "+57 300 456 7890",
+    coordinates: {
+      lat: 4.7200,
+      lng: -74.0650
+    },
     hours: {
       weekday: "12:00-22:00",
       weekend: "12:00-23:00"
@@ -111,6 +131,10 @@ export const mockPlaces: Place[] = [
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
     priceLevel: "$$",
     phone: "+57 300 567 8901",
+    coordinates: {
+      lat: 4.7130,
+      lng: -74.0740
+    },
     hours: {
       weekday: "12:00-22:00",
       weekend: "12:00-23:30"
